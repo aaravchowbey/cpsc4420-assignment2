@@ -1,0 +1,72 @@
+{
+  "config": {
+    "baseline": {
+      "alpha": 0.1,
+      "gamma": 0.99,
+      "epsilon": 1.0,
+      "epsilon_min": 0.05,
+      "epsilon_decay": 0.999
+    },
+    "episodes": 4000,
+    "seed": 42,
+    "noise_levels": [
+      0.0,
+      0.1,
+      0.25
+    ],
+    "eval_episodes": 50,
+    "eval_noise_seed": 1041,
+    "note": "with prob. p the intended action is replaced by a uniformly random *different* valid action"
+  },
+  "per_noise": {
+    "0.0": {
+      "train_mean_reward_last500": 0.948,
+      "train_mean_steps_last500": 6.08,
+      "eval": {
+        "episodes": 50,
+        "mean_reward": 1.0,
+        "std_reward": 0.0,
+        "success_rate": 1.0,
+        "mean_steps": 6.0
+      }
+    },
+    "0.1": {
+      "train_mean_reward_last500": 0.798,
+      "train_mean_steps_last500": 7.74,
+      "eval": {
+        "episodes": 50,
+        "mean_reward": 0.82,
+        "std_reward": 0.3841874542459709,
+        "success_rate": 0.82,
+        "mean_steps": 6.28
+      }
+    },
+    "0.25": {
+      "train_mean_reward_last500": 0.546,
+      "train_mean_steps_last500": 8.14,
+      "eval": {
+        "episodes": 50,
+        "mean_reward": 0.7,
+        "std_reward": 0.458257569495584,
+        "success_rate": 0.7,
+        "mean_steps": 7.68
+      }
+    }
+  },
+  "cross_eval": {
+    "0.1": {
+      "episodes": 50,
+      "mean_reward": 0.84,
+      "std_reward": 0.36660605559646714,
+      "success_rate": 0.84,
+      "mean_steps": 6.24
+    },
+    "0.25": {
+      "episodes": 50,
+      "mean_reward": 0.6,
+      "std_reward": 0.4898979485566356,
+      "success_rate": 0.6,
+      "mean_steps": 7.02
+    }
+  }
+}
