@@ -1,64 +1,42 @@
-"""Part H (extra credit): robustness to action noise.
+"""Part H (extra credit): how does action noise affect the agent?
 
-Usage:  python experiments_parth.py
-Runs:
-  For each p in [0, 0.10, 0.25]:
-    - train the baseline agent (alpha=0.1, gamma=0.99, epsilon 1.0->0.05
-      decay 0.999, 4000 episodes, seed 42) under action-noise level p
-    - greedy-evaluate it under the SAME noise level p (50 episodes)
-  Cross-evaluation: take the p=0 trained Q-table and evaluate it greedily
-    under p=0.10 and p=0.25 (no retraining) to test whether the original
-    policy remains effective under added noise.
-Saves:
-  results/noise_robustness.json
-  results/qtable_noise_p000.npy / qtable_noise_p010.npy / qtable_noise_p025.npy
-  results/plots/noise_robustness.png
+For each p in [0, 0.10, 0.25]: train the baseline config under action
+noise p, then greedy-evaluate it under the same noise (50 episodes).
+Then cross-evaluate: run the p=0 policy under p=0.10/0.25 noise with no
+retraining, to see if the original policy holds up.
 
-Design notes:
-  * All evaluation envs share the same wrapper seed, so every policy faces
-    the identical noise-draw sequence -- the only difference between eval
-    runs is the policy itself.
-  * Parts A-G behavior is untouched; this script only adds new files.
+Saves results/noise_robustness.json, results/qtable_noise_*.npy and
+results/plots/noise_robustness.png
 """
 import json
 import os
-import sys
 import time
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
-from agent import QLearningAgent
-from config import BASELINE, EPISODES, SEED
-from env_utils import N_STATES, N_ACTIONS
-from noise_env import make_noisy_env
-from training import train_agent
-from evaluate import evaluate_policy
-
 import numpy as np
 import matplotlib
-matplotlib.use("Agg")  # headless-safe, same as plot_utils.py
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-
-ROOT = os.path.dirname(os.path.abspath(__file__))
-RESULTS = os.path.join(ROOT, "results")
-PLOTS = os.path.join(RESULTS, "plots")
-os.makedirs(PLOTS, exist_ok=True)
+from qlearning import (QLearningAgent, train_agent, evaluate_policy,
+                       make_noisy_env, BASELINE, EPISODES, SEED)
 
 NOISE_LEVELS = [0.0, 0.10, 0.25]
 EVAL_EPISODES = 50
-EVAL_NOISE_SEED = SEED + 999  # identical noise stream for every eval run
+EVAL_NOISE_SEED = SEED + 999  # same noise stream for every eval run
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+RESULTS = os.path.join(HERE, "results")
+PLOTS = os.path.join(RESULTS, "plots")
+os.makedirs(PLOTS, exist_ok=True)
 
 
 def train_under_noise(p, seed=SEED):
-    """Train the baseline config under action-noise level p."""
     env = make_noisy_env(p, seed=seed + 1000)
-    agent = QLearningAgent(N_STATES, N_ACTIONS, seed=seed, **BASELINE)
+    agent = QLearningAgent(seed=seed, **BASELINE)
     rewards, steps = train_agent(agent, env, EPISODES, seed=seed)
     env.close()
     return agent, rewards, steps
 
 
 def greedy_eval_under_noise(agent, p, episodes=EVAL_EPISODES):
-    """Greedy evaluation of a (trained) agent under noise level p."""
     env = make_noisy_env(p, seed=EVAL_NOISE_SEED)
     metrics = evaluate_policy(agent, env, episodes=episodes)
     env.close()
@@ -66,12 +44,8 @@ def greedy_eval_under_noise(agent, p, episodes=EVAL_EPISODES):
 
 
 def plot_noise_robustness(per_noise, cross_eval, path):
-    """Mean reward and success rate vs noise level p.
-
-    Two series: agents trained under each noise level (evaluated at the
-    same level), and the p=0-trained policy cross-evaluated under noise.
-    Style follows src/plot_utils.py (Agg backend, grid, tight layout).
-    """
+    # mean reward and success rate vs noise level p; two series: agents
+    # trained under each noise level, and the p=0 policy tested under noise
     ps = sorted(per_noise)
     train_rewards = [per_noise[p]["eval"]["mean_reward"] for p in ps]
     train_reward_std = [per_noise[p]["eval"]["std_reward"] for p in ps]

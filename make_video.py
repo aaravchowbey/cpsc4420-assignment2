@@ -1,12 +1,10 @@
 """Render the trained greedy policy to an MP4 video.
 
-FrozenLake's built-in rgb_array renderer needs pygame, so we draw the 4x4
-grid ourselves with matplotlib (no extra dependencies) and encode with
-imageio-ffmpeg.
+FrozenLake's built-in rgb_array renderer needs pygame, so the 4x4 grid
+is drawn directly with matplotlib and encoded with imageio-ffmpeg.
 
-Usage:  python make_video.py [path/to/qtable.npy]
-Default: results/qtable_best.npy
-Output:  results/videos/trained_agent.mp4
+Usage:  python make_video.py [path/to/qtable.npy]   (default: results/qtable_best.npy)
+Output: results/videos/trained_agent.mp4
 """
 import os
 import sys
@@ -18,15 +16,13 @@ import matplotlib.patches as patches
 import numpy as np
 import imageio.v2 as imageio
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
-from agent import QLearningAgent
-from env_utils import make_env, N_STATES, N_ACTIONS
+from qlearning import QLearningAgent, make_env
 
-ROOT = os.path.dirname(os.path.abspath(__file__))
-VIDEOS = os.path.join(ROOT, "results", "videos")
+HERE = os.path.dirname(os.path.abspath(__file__))
+VIDEOS = os.path.join(HERE, "results", "videos")
 os.makedirs(VIDEOS, exist_ok=True)
 
-# FrozenLake-v1 4x4 map layout (row 0 at top)
+# FrozenLake-v1 4x4 map (row 0 at top)
 MAP = ["SFFF",
        "FHFH",
        "FFFH",
@@ -35,7 +31,6 @@ COLORS = {"S": "#9ecbff", "F": "#f2f2f2", "H": "#ff9e9e", "G": "#9eff9e"}
 
 
 def draw_state(state):
-    """Return an RGB frame (numpy array) of the grid with the agent marked."""
     fig, ax = plt.subplots(figsize=(4, 4), dpi=120)
     ax.set_xlim(0, 4)
     ax.set_ylim(0, 4)
@@ -60,7 +55,6 @@ def draw_state(state):
 
 
 def rollout_states(agent, env, seed):
-    """Run one greedy episode, return the visited state sequence."""
     states = []
     state, _ = env.reset(seed=seed)
     states.append(state)
@@ -75,16 +69,15 @@ def rollout_states(agent, env, seed):
 
 def main():
     qtable = (sys.argv[1] if len(sys.argv) > 1
-              else os.path.join(ROOT, "results", "qtable_best.npy"))
-    agent = QLearningAgent(N_STATES, N_ACTIONS)
+              else os.path.join(HERE, "results", "qtable_best.npy"))
+    agent = QLearningAgent()
     agent.load(qtable)
     env = make_env()
 
     frames = []
     for ep in range(3):  # three greedy episodes stitched together
         for s in rollout_states(agent, env, seed=2026 + ep):
-            # hold each grid position ~0.4 s at 5 fps
-            frames.extend([draw_state(s)] * 2)
+            frames.extend([draw_state(s)] * 2)  # ~0.4 s per position at 5 fps
     env.close()
 
     out = os.path.join(VIDEOS, "trained_agent.mp4")

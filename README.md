@@ -24,30 +24,26 @@ binary, so a system ffmpeg is optional).
 # (D, E, F, G) Hyperparameter sweeps + best-config greedy evaluation
 ./venv/bin/python experiments.py
 
-# Greedy evaluation of a saved Q-table (default: results/qtable_best.npy)
-./venv/bin/python evaluate.py [path/to/qtable.npy] [--episodes 50]
+# (H, extra credit) Robustness to action noise (p = 0, 0.10, 0.25)
+./venv/bin/python experiments_parth.py
 
 # Render a short MP4 of the trained greedy policy
 ./venv/bin/python make_video.py [path/to/qtable.npy]
 ```
 
-All hyperparameters live in `src/config.py` (baseline alpha/gamma/epsilon,
-sweep values, episode counts, seeds).
+Baseline hyperparameters (alpha/gamma/epsilon, episode count, seed) live
+at the top of `qlearning.py`; sweep values are at the top of
+`experiments.py`.
 
 ## Layout
 
 ```
 cpsc4420_hw2/
-├── src/
-│   ├── agent.py       # QLearningAgent: Q-table, epsilon-greedy, Q-update
-│   ├── config.py      # baseline + sweep hyperparameters
-│   ├── env_utils.py   # FrozenLake-v1 factory (+ why this environment)
-│   ├── training.py    # epsilon-greedy training loop
-│   ├── evaluate.py    # greedy evaluation metrics
-│   └── plot_utils.py  # moving-average learning-curve plots
+├── qlearning.py       # agent, training loop, greedy eval, env factory,
+│                      #   action-noise wrapper (H), plot helpers
 ├── train.py           # part (C): baseline training + plot
 ├── experiments.py     # parts (D)-(G): sweeps, plots, best-config eval
-├── evaluate.py        # greedy eval of any saved Q-table
+├── experiments_parth.py  # part (H, extra credit): noise robustness
 ├── make_video.py      # MP4 of the trained agent
 ├── results/
 │   ├── plots/         # PNG learning curves
