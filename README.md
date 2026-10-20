@@ -18,37 +18,26 @@ binary, so a system ffmpeg is optional).
 ## Run
 
 ```bash
-# (C) Train the baseline agent (~a few minutes)
-./venv/bin/python train.py
-
-# (D, E, F, G) Hyperparameter sweeps + best-config greedy evaluation
-./venv/bin/python experiments.py
-
-# (H, extra credit) Robustness to action noise (p = 0, 0.10, 0.25)
-./venv/bin/python experiments_parth.py
-
-# Render a short MP4 of the trained greedy policy
-./venv/bin/python make_video.py [path/to/qtable.npy]
+# Runs everything: baseline training (C), sweeps (D-F), best-agent
+# eval (G), noise-robustness study (H), and the MP4 video (~a few minutes)
+./venv/bin/python assignment2.py
 ```
 
-Baseline hyperparameters (alpha/gamma/epsilon, episode count, seed) live
-at the top of `qlearning.py`; sweep values are at the top of
-`experiments.py`.
+All hyperparameters (alpha/gamma/epsilon, episode count, seed) and sweep
+values are plain constants at the top of `assignment2.py`.
 
 ## Layout
 
 ```
 cpsc4420_hw2/
-├── qlearning.py       # agent, training loop, greedy eval, env factory,
-│                      #   action-noise wrapper (H), plot helpers
-├── train.py           # part (C): baseline training + plot
-├── experiments.py     # parts (D)-(G): sweeps, plots, best-config eval
-├── experiments_parth.py  # part (H, extra credit): noise robustness
-├── make_video.py      # MP4 of the trained agent
+├── assignment2.py   # everything: Q-learning agent, training loop, env,
+│                    #   action-noise wrapper (H), all experiments (C-H),
+│                    #   plots, and the MP4 video render
 ├── results/
 │   ├── plots/         # PNG learning curves
 │   ├── videos/        # MP4 of trained agent
 │   ├── summary.json   # sweep results + evaluation metrics
+│   ├── noise_robustness.json  # part H results
 │   └── qtable_*.npy   # saved Q-tables
 ├── README.md
 └── REPORT_OUTLINE.md  # bullet outline for writing the PDF report
