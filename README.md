@@ -1,7 +1,7 @@
 # CPSC 4420 — HW2: Tabular Q-Learning (Fall 2026)
 
 Tabular Q-learning from scratch (no RL libraries) on `FrozenLake-v1`
-(deterministic variant, `is_slippery=False`) using OpenAI Gymnasium.
+(8x8 map, deterministic variant, `is_slippery=False`) using OpenAI Gymnasium.
 
 ## Setup
 
@@ -45,9 +45,23 @@ cpsc4420_hw2/
 
 ## Environment choice
 
-FrozenLake-v1 (`is_slippery=False`): 16 states × 4 actions = a 64-entry
-Q-table — ideal for *tabular* methods with no function approximation and no
-discretization. Sparse reward (1.0 only at the goal) and terminal holes make
-credit assignment non-trivial, yet it trains in minutes. Deterministic
-transitions keep experiments reproducible; the stochastic (`is_slippery=True`)
-variant is the natural extension for the graduate extra-credit study (H).
+FrozenLake-v1 on the **8x8 map** (`map_name="8x8"`), as required by the
+assignment: 64 states × 4 actions = a 256-entry Q-table — still small enough
+for *tabular* methods with no function approximation and no discretization.
+Sparse reward (1.0 only at the goal) and terminal holes make credit
+assignment non-trivial. Deterministic transitions (`is_slippery=False` — the
+handout does not specify slipperiness, so it is off) keep experiments
+reproducible; controlled stochasticity is added separately in part H via an
+action-noise wrapper instead of the built-in slippery variant.
+
+## Hyperparameters (baseline, part C)
+
+- alpha = 0.1, gamma = 0.99, epsilon 1.0 → 0.05 (decay 0.9995/episode)
+- 10000 episodes, seed 42
+- **Optimistic Q initialization** (Q starts at 1.0). On the 8x8 grid a
+  random walk essentially never stumbles onto the goal — zero-init
+  epsilon-greedy reached it exactly once in 20000 episodes and never
+  learned. With optimistic init the greedy policy itself explores
+  (untried actions look maximally good), and the agent reliably learns:
+  baseline last-100-episode reward ≈ 0.89, greedy evaluation 100%
+  success in 14.0 steps (the optimal path length on this map).

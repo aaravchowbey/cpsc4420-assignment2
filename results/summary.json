@@ -4,42 +4,42 @@
     "gamma": 0.99,
     "epsilon": 1.0,
     "epsilon_min": 0.05,
-    "epsilon_decay": 0.999
+    "epsilon_decay": 0.9995
   },
   "alpha_sweep": {
-    "0.01": 0.946,
-    "0.1": 0.948,
-    "0.5": 0.946
+    "0.01": 0.908,
+    "0.1": 0.892,
+    "0.5": 0.886
   },
   "gamma_sweep": {
-    "0.8": 0.946,
-    "0.95": 0.948,
-    "0.999": 0.948
+    "0.8": 0.892,
+    "0.95": 0.888,
+    "0.999": 0.884
   },
   "epsilon_decay_sweep": {
-    "0.99": 0.0,
-    "0.995": 0.0,
-    "0.999": 0.948
+    "0.99": 0.874,
+    "0.995": 0.886,
+    "0.9995": 0.892
   },
   "best_config": {
-    "alpha": 0.1,
-    "gamma": 0.95,
+    "alpha": 0.01,
+    "gamma": 0.8,
     "epsilon": 1.0,
     "epsilon_min": 0.05,
-    "epsilon_decay": 0.999
+    "epsilon_decay": 0.9995
   },
   "best_eval_greedy_50eps": {
     "episodes": 50,
     "mean_reward": 1.0,
     "std_reward": 0.0,
     "success_rate": 1.0,
-    "mean_steps": 6.0
+    "mean_steps": 14.0
   },
   "baseline_eval_greedy_50eps": {
     "episodes": 50,
     "mean_reward": 1.0,
     "std_reward": 0.0,
     "success_rate": 1.0,
-    "mean_steps": 6.0
+    "mean_steps": 14.0
   }
 }

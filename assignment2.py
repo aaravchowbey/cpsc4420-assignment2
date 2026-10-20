@@ -1,8 +1,8 @@
 """CPSC 4420 Assignment 2: Tabular Q-learning on FrozenLake-v1 (Fall 2026).
 
 Implements tabular Q-learning from scratch (no RL libraries) on the
-deterministic FrozenLake-v1 env (is_slippery=False), then studies how
-hyperparameters affect learning:
+deterministic FrozenLake-v1 env (8x8 map, is_slippery=False), then studies
+how hyperparameters affect learning:
 
   Part C  baseline training
   Part D  learning-rate sweep
@@ -30,17 +30,25 @@ import imageio.v2 as imageio
 # ---------------------------------------------------------------------------
 # hyperparameters
 # ---------------------------------------------------------------------------
-N_STATES = 16   # 4x4 FrozenLake grid
+N_STATES = 64   # 8x8 FrozenLake grid
 N_ACTIONS = 4   # LEFT, DOWN, RIGHT, UP
 
-# baseline (part C)
+# baseline (part C) -- tuned for the 8x8 map
 ALPHA = 0.1
 GAMMA = 0.99
 EPSILON = 1.0
 EPSILON_MIN = 0.05
-EPSILON_DECAY = 0.999
-EPISODES = 4000
+EPSILON_DECAY = 0.9995  # slower than 4x4: the bigger grid needs longer exploration
+EPISODES = 10000        # 8x8 needs more episodes for the sparse goal reward
 SEED = 42
+
+# optimistic Q init: every action starts at 1.0 (the max possible return).
+# On the 8x8 map a random walk almost never reaches the goal (in 20000
+# episodes of zero-init epsilon-greedy it happened exactly once), so the
+# greedy policy itself must explore: untried actions look maximally good,
+# which drives the agent to systematically try new routes instead of
+# repeating the tie-broken action (LEFT) into a wall forever.
+Q_INIT = 1.0
 
 BASELINE = dict(alpha=ALPHA, gamma=GAMMA, epsilon=EPSILON,
                 epsilon_min=EPSILON_MIN, epsilon_decay=EPSILON_DECAY)
@@ -48,7 +56,7 @@ BASELINE = dict(alpha=ALPHA, gamma=GAMMA, epsilon=EPSILON,
 # sweep values (parts D-F)
 ALPHAS = [0.01, 0.1, 0.5]
 GAMMAS = [0.8, 0.95, 0.999]
-EPS_DECAYS = [0.99, 0.995, 0.999]
+EPS_DECAYS = [0.99, 0.995, 0.9995]
 
 # part H settings
 NOISE_LEVELS = [0.0, 0.10, 0.25]
@@ -70,8 +78,8 @@ os.makedirs(VIDEOS, exist_ok=True)
 # environment
 # ---------------------------------------------------------------------------
 def make_env(render_mode=None):
-    # deterministic FrozenLake (is_slippery=False)
-    return gym.make("FrozenLake-v1", is_slippery=False,
+    # deterministic FrozenLake on the 8x8 map (is_slippery=False)
+    return gym.make("FrozenLake-v1", map_name="8x8", is_slippery=False,
                     render_mode=render_mode)
 
 
@@ -87,9 +95,9 @@ class QLearningAgent:
         self.epsilon_min = epsilon_min
         self.epsilon_decay = epsilon_decay
         self.rng = np.random.default_rng(seed)
-        # zero init: every action looks equal, so early on the agent
-        # just explores
-        self.Q = np.zeros((N_STATES, N_ACTIONS))
+        # optimistic init (see Q_INIT): untried actions look maximally good,
+        # so the greedy policy explores systematically on the sparse 8x8 map
+        self.Q = np.full((N_STATES, N_ACTIONS), Q_INIT)
 
     def act(self, state, explore=True):
         # epsilon-greedy
@@ -440,29 +448,33 @@ def part_h_noise():
 # ---------------------------------------------------------------------------
 # video of the trained greedy policy
 # ---------------------------------------------------------------------------
-MAP = ["SFFF",
-       "FHFH",
-       "FFFH",
-       "HFFG"]
+MAP = ["SFFFFFFF",
+       "FFFFFFFF",
+       "FFFHFFFF",
+       "FFFFFHFF",
+       "FFFHFFFF",
+       "FHHFFFHF",
+       "FHFFHFHF",
+       "FFFHFFFG"]
 COLORS = {"S": "#9ecbff", "F": "#f2f2f2", "H": "#ff9e9e", "G": "#9eff9e"}
 
 
 def draw_state(state):
-    # draw the 4x4 grid with matplotlib (FrozenLake's own rgb_array renderer
+    # draw the 8x8 grid with matplotlib (FrozenLake's own rgb_array renderer
     # needs pygame, so this is simpler)
-    fig, ax = plt.subplots(figsize=(4, 4), dpi=120)
-    ax.set_xlim(0, 4)
-    ax.set_ylim(0, 4)
-    for r in range(4):
-        for c in range(4):
+    fig, ax = plt.subplots(figsize=(5, 5), dpi=120)
+    ax.set_xlim(0, 8)
+    ax.set_ylim(0, 8)
+    for r in range(8):
+        for c in range(8):
             ch = MAP[r][c]
-            ax.add_patch(patches.Rectangle((c, 3 - r), 1, 1,
+            ax.add_patch(patches.Rectangle((c, 7 - r), 1, 1,
                                            facecolor=COLORS[ch],
                                            edgecolor="black", linewidth=1.5))
-            ax.text(c + 0.5, 3 - r + 0.5, ch, ha="center", va="center",
-                    fontsize=22, fontweight="bold")
-    r, c = divmod(state, 4)
-    ax.plot(c + 0.5, 3 - r + 0.5, "o", ms=30, color="#1f6feb",
+            ax.text(c + 0.5, 7 - r + 0.5, ch, ha="center", va="center",
+                    fontsize=14, fontweight="bold")
+    r, c = divmod(state, 8)
+    ax.plot(c + 0.5, 7 - r + 0.5, "o", ms=26, color="#1f6feb",
             markeredgecolor="white", markeredgewidth=2, zorder=5)
     ax.set_aspect("equal")
     ax.axis("off")
